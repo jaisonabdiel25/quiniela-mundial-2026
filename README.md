@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ⚽ Quiniela Mundial 2026
 
-## Getting Started
+Aplicación de quiniela para el Mundial 2026. Los usuarios se registran, crean
+grupos o se unen con un código de 6 caracteres, predicen los marcadores de los
+104 partidos y compiten en la tabla de posiciones de cada grupo.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, TypeScript, Turbopack)
+- **PostgreSQL 16** local en Docker
+- **Prisma 7** (ORM, migraciones, seed)
+- **Auth.js v5** con credenciales (email + contraseña)
+- **Tailwind CSS 4**
+
+## Puesta en marcha
 
 ```bash
+# 1. Variables de entorno
+cp .env.example .env
+
+# 2. Base de datos (Docker, puerto 5435)
+npm run db:up
+
+# 3. Dependencias, migraciones y seed (48 equipos + 104 partidos + admin)
+npm install
+npm run db:migrate
+npm run db:seed
+
+# 4. Servidor de desarrollo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usuarios y roles
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Rol | Cómo se obtiene | Qué puede hacer |
+| --- | --- | --- |
+| Usuario | Registro en `/register` | Predecir, crear grupos y unirse con código |
+| Admin de grupo | Crear un grupo | Compartir el código, expulsar miembros, eliminar el grupo |
+| Admin global | Seed (`admin@quiniela.local` / `ADMIN_SEED_PASSWORD` del `.env`, por defecto `admin123`) | Cargar resultados oficiales y asignar equipos a los cruces de eliminatorias en `/admin` |
 
-## Learn More
+## Reglas de la quiniela
 
-To learn more about Next.js, take a look at the following resources:
+- Las predicciones se pueden crear y editar **hasta el inicio de cada partido**.
+- **3 puntos** por marcador exacto, **1 punto** por acertar el resultado
+  (ganador o empate), 0 en otro caso.
+- La predicción es única por usuario y cuenta para todos sus grupos.
+- Desempate en la tabla: más marcadores exactos, luego orden alfabético.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Datos del torneo
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`prisma/data/wc2026.json` contiene el fixture real (equipos del sorteo de
+diciembre de 2025, fechas/horas en UTC y sedes). Los 32 partidos de la fase
+eliminatoria se siembran con placeholders («1° Grupo A», «Ganador P89»…); el
+admin global asigna los equipos reales desde `/admin` cuando se definen los
+cruces, y a partir de ahí los usuarios pueden predecirlos.
 
-## Deploy on Vercel
+## Scripts útiles
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Comando | Descripción |
+| --- | --- |
+| `npm run db:up` / `db:down` | Levantar / detener PostgreSQL en Docker |
+| `npm run db:migrate` | Aplicar migraciones de Prisma |
+| `npm run db:seed` | Sembrar equipos, partidos y usuario admin (idempotente) |
+| `npm run db:studio` | Abrir Prisma Studio para inspeccionar los datos |

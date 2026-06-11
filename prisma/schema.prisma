@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Stage {
+  GROUP
+  ROUND_32
+  ROUND_16
+  QUARTER
+  SEMI
+  THIRD_PLACE
+  FINAL
+}
+
+enum MatchStatus {
+  SCHEDULED
+  FINISHED
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  passwordHash String
+  role         Role          @default(USER)
+  createdAt    DateTime      @default(now())
+  ownedGroups  Group[]       @relation("GroupOwner")
+  memberships  GroupMember[]
+  predictions  Prediction[]
+}
+
+model Group {
+  id        String        @id @default(cuid())
+  name      String
+  code      String        @unique
+  ownerId   String
+  owner     User          @relation("GroupOwner", fields: [ownerId], references: [id])
+  members   GroupMember[]
+  createdAt DateTime      @default(now())
+}
+
+model GroupMember {
+  userId   String
+  groupId  String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group    Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  joinedAt DateTime @default(now())
+
+  @@id([userId, groupId])
+}
+
+model Team {
+  id          Int     @id @default(autoincrement())
+  name        String
+  fifaCode    String  @unique
+  flagEmoji   String
+  groupLetter String
+  homeMatches Match[] @relation("HomeTeam")
+  awayMatches Match[] @relation("AwayTeam")
+}
+
+model Match {
+  id              Int          @id @default(autoincrement())
+  matchNumber     Int          @unique
+  stage           Stage
+  groupLetter     String?
+  homeTeamId      Int?
+  awayTeamId      Int?
+  homeTeam        Team?        @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam        Team?        @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  homePlaceholder String?
+  awayPlaceholder String?
+  kickoff         DateTime
+  venue           String
+  homeScore       Int?
+  awayScore       Int?
+  status          MatchStatus  @default(SCHEDULED)
+  predictions     Prediction[]
+}
+
+model Prediction {
+  userId    String
+  matchId   Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  homeScore Int
+  awayScore Int
+  points    Int?
+  updatedAt DateTime @updatedAt
+
+  @@id([userId, matchId])
+}

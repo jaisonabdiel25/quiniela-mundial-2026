@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: quiniela-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: quiniela
+      POSTGRES_PASSWORD: quiniela
+      POSTGRES_DB: quiniela
+    ports:
+      - "5435:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quiniela -d quiniela"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
