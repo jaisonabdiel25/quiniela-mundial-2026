@@ -8,9 +8,9 @@ export default function RegisterPage() {
         Crear cuenta
       </h1>
       <RegisterForm />
-      <p className="mt-4 text-center text-sm text-zinc-400">
+      <p className="mt-4 text-center text-sm text-slate-400">
         ¿Ya tienes cuenta?{" "}
-        <Link href="/login" className="text-emerald-400 hover:underline">
+        <Link href="/login" className="text-sky-400 hover:underline">
           Inicia sesión
         </Link>
       </p>

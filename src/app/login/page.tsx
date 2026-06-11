@@ -8,9 +8,9 @@ export default function LoginPage() {
         Iniciar sesión
       </h1>
       <LoginForm />
-      <p className="mt-4 text-center text-sm text-zinc-400">
+      <p className="mt-4 text-center text-sm text-slate-400">
         ¿No tienes cuenta?{" "}
-        <Link href="/register" className="text-emerald-400 hover:underline">
+        <Link href="/register" className="text-sky-400 hover:underline">
           Regístrate
         </Link>
       </p>

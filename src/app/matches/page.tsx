@@ -27,18 +27,18 @@ function MatchRow({
     <li className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         <p className="text-sm text-white">
-          <span className="mr-2 text-xs text-zinc-600">P{match.matchNumber}</span>
+          <span className="mr-2 text-xs text-slate-600">P{match.matchNumber}</span>
           <TeamLabel team={match.homeTeam} placeholder={match.homePlaceholder} />{" "}
           {finished ? (
-            <span className="mx-1 rounded bg-zinc-800 px-2 py-0.5 font-mono text-white">
+            <span className="mx-1 rounded bg-slate-800 px-2 py-0.5 font-mono text-white">
               {match.homeScore}-{match.awayScore}
             </span>
           ) : (
-            <span className="text-zinc-500">vs</span>
+            <span className="text-slate-500">vs</span>
           )}{" "}
           <TeamLabel team={match.awayTeam} placeholder={match.awayPlaceholder} />
         </p>
-        <p className="text-xs text-zinc-500">
+        <p className="text-xs text-slate-500">
           <KickoffTime date={match.kickoff} /> · {match.venue}
         </p>
       </div>
@@ -50,32 +50,32 @@ function MatchRow({
             initialAway={prediction?.awayScore}
           />
         ) : !locked && !finished ? (
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-slate-500">
             Disponible cuando se definan los equipos
           </span>
         ) : (
           <div className="flex items-center gap-2 text-sm">
             {prediction ? (
-              <span className="font-mono text-zinc-300">
+              <span className="font-mono text-slate-300">
                 Mi predicción: {prediction.homeScore}-{prediction.awayScore}
               </span>
             ) : (
-              <span className="text-zinc-500">Sin predicción</span>
+              <span className="text-slate-500">Sin predicción</span>
             )}
             {finished && prediction?.points != null && (
               <span
                 className={`rounded px-2 py-0.5 text-xs font-bold ${
                   prediction.points === 3
-                    ? "bg-emerald-700 text-white"
+                    ? "bg-sky-700 text-white"
                     : prediction.points === 1
-                      ? "bg-amber-700 text-white"
-                      : "bg-zinc-800 text-zinc-400"
+                      ? "bg-violet-700 text-white"
+                      : "bg-slate-800 text-slate-400"
                 }`}
               >
                 {prediction.points} pts
               </span>
             )}
-            {!finished && <span className="text-xs text-amber-400">En juego</span>}
+            {!finished && <span className="text-xs text-violet-400">En juego</span>}
           </div>
         )}
       </div>
@@ -100,7 +100,7 @@ export default async function MatchesPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-xl font-bold text-white">Partidos del Mundial 2026</h1>
-        <p className="text-sm text-zinc-400">
+        <p className="text-sm text-slate-400">
           Predice el marcador antes del inicio de cada partido. 3 puntos por
           marcador exacto, 1 por acertar el resultado.
         </p>
@@ -114,20 +114,20 @@ export default async function MatchesPage() {
           const letters = [...new Set(stageMatches.map((m) => m.groupLetter))].sort();
           return (
             <section key={stage}>
-              <h2 className="mb-2 text-lg font-semibold text-emerald-400">
+              <h2 className="mb-2 text-lg font-semibold text-sky-400">
                 {STAGE_LABELS[stage]}
               </h2>
               <div className="space-y-4">
                 {letters.map((letter) => (
                   <details
                     key={letter}
-                    className="rounded-lg border border-zinc-800 bg-zinc-900"
+                    className="rounded-lg border border-slate-800 bg-slate-900"
                     open={letter === "A"}
                   >
                     <summary className="cursor-pointer p-3 font-medium text-white">
                       Grupo {letter}
                     </summary>
-                    <ul className="divide-y divide-zinc-800 border-t border-zinc-800">
+                    <ul className="divide-y divide-slate-800 border-t border-slate-800">
                       {stageMatches
                         .filter((m) => m.groupLetter === letter)
                         .map((m) => (
@@ -147,10 +147,10 @@ export default async function MatchesPage() {
 
         return (
           <section key={stage}>
-            <h2 className="mb-2 text-lg font-semibold text-emerald-400">
+            <h2 className="mb-2 text-lg font-semibold text-sky-400">
               {STAGE_LABELS[stage]}
             </h2>
-            <ul className="divide-y divide-zinc-800 rounded-lg border border-zinc-800 bg-zinc-900">
+            <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-900">
               {stageMatches.map((m) => (
                 <MatchRow
                   key={m.id}

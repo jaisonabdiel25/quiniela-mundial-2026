@@ -13,7 +13,7 @@ type Props = {
 
 export function TeamLabel({ team, placeholder }: Props) {
   if (!team) {
-    return <span className="text-zinc-400">{placeholder ?? "Por definir"}</span>;
+    return <span className="text-slate-400">{placeholder ?? "Por definir"}</span>;
   }
   return (
     <span className="inline-flex items-center gap-1.5">

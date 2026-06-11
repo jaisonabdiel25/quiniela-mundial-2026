@@ -5,7 +5,7 @@ import { saveResult, assignTeams } from "@/lib/actions/admin";
 import type { FormState } from "@/lib/actions/auth";
 
 const scoreClass =
-  "w-14 rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-center text-zinc-100 focus:border-amber-500 focus:outline-none";
+  "w-14 rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-center text-slate-100 focus:border-violet-500 focus:outline-none";
 
 export function ResultForm({
   matchId,
@@ -33,7 +33,7 @@ export function ResultForm({
         className={scoreClass}
         aria-label="Goles local"
       />
-      <span className="text-zinc-500">-</span>
+      <span className="text-slate-500">-</span>
       <input
         type="number"
         name="awayScore"
@@ -47,7 +47,7 @@ export function ResultForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-amber-600 px-3 py-1 text-sm font-medium text-white hover:bg-amber-500 disabled:opacity-50"
+        className="rounded-md bg-violet-600 px-3 py-1 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50"
       >
         {pending ? "..." : "Guardar resultado"}
       </button>
@@ -73,7 +73,7 @@ export function AssignTeamsForm({
     undefined
   );
   const selectClass =
-    "rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-sm text-zinc-100 focus:border-amber-500 focus:outline-none";
+    "rounded-md border border-slate-700 bg-slate-900 px-2 py-1 text-sm text-slate-100 focus:border-violet-500 focus:outline-none";
   return (
     <form action={formAction} className="flex flex-wrap items-center gap-2">
       <select name="homeTeamId" defaultValue={currentHomeId ?? ""} required className={selectClass}>
@@ -86,7 +86,7 @@ export function AssignTeamsForm({
           </option>
         ))}
       </select>
-      <span className="text-zinc-500">vs</span>
+      <span className="text-slate-500">vs</span>
       <select name="awayTeamId" defaultValue={currentAwayId ?? ""} required className={selectClass}>
         <option value="" disabled>
           Equipo visitante
@@ -100,7 +100,7 @@ export function AssignTeamsForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-md bg-zinc-700 px-3 py-1 text-sm font-medium text-white hover:bg-zinc-600 disabled:opacity-50"
+        className="rounded-md bg-slate-700 px-3 py-1 text-sm font-medium text-white hover:bg-slate-600 disabled:opacity-50"
       >
         {pending ? "..." : "Asignar"}
       </button>

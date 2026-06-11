@@ -28,10 +28,10 @@ export default async function GroupPage({
   if (!membership) {
     return (
       <div className="mx-auto mt-12 max-w-sm text-center">
-        <p className="text-zinc-300">No perteneces a este grupo.</p>
+        <p className="text-slate-300">No perteneces a este grupo.</p>
         <Link
           href="/groups/join"
-          className="mt-4 inline-block text-emerald-400 hover:underline"
+          className="mt-4 inline-block text-sky-400 hover:underline"
         >
           Unirme con un código →
         </Link>
@@ -47,13 +47,13 @@ export default async function GroupPage({
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white">{group.name}</h1>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-slate-400">
             Administrador: {group.owner.name}
           </p>
         </div>
-        <div className="rounded-lg border border-emerald-800 bg-emerald-950 px-4 py-2 text-center">
-          <p className="text-xs text-emerald-300">Código para invitar</p>
-          <p className="font-mono text-xl font-bold tracking-widest text-emerald-400">
+        <div className="rounded-lg border border-sky-800 bg-sky-950 px-4 py-2 text-center">
+          <p className="text-xs text-sky-300">Código para invitar</p>
+          <p className="font-mono text-xl font-bold tracking-widest text-sky-400">
             {group.code}
           </p>
         </div>
@@ -63,10 +63,10 @@ export default async function GroupPage({
         <h2 className="mb-2 text-lg font-semibold text-white">
           Tabla de posiciones
         </h2>
-        <div className="overflow-x-auto rounded-lg border border-zinc-800">
-          <table className="w-full bg-zinc-900 text-sm">
+        <div className="overflow-x-auto rounded-lg border border-slate-800">
+          <table className="w-full bg-slate-900 text-sm">
             <thead>
-              <tr className="border-b border-zinc-800 text-left text-zinc-400">
+              <tr className="border-b border-slate-800 text-left text-slate-400">
                 <th className="p-3">#</th>
                 <th className="p-3">Jugador</th>
                 <th className="p-3 text-right">Puntos</th>
@@ -79,22 +79,22 @@ export default async function GroupPage({
               {leaderboard.map((row, i) => (
                 <tr
                   key={row.userId}
-                  className={`border-b border-zinc-800/50 last:border-0 ${
-                    row.userId === userId ? "bg-emerald-950/40" : ""
+                  className={`border-b border-slate-800/50 last:border-0 ${
+                    row.userId === userId ? "bg-sky-950/40" : ""
                   }`}
                 >
-                  <td className="p-3 text-zinc-400">{i + 1}</td>
+                  <td className="p-3 text-slate-400">{i + 1}</td>
                   <td className="p-3 text-white">
                     {row.name}
                     {row.userId === group.ownerId && (
-                      <span className="ml-2 text-xs text-amber-400">admin</span>
+                      <span className="ml-2 text-xs text-violet-400">admin</span>
                     )}
                   </td>
-                  <td className="p-3 text-right font-bold text-emerald-400">
+                  <td className="p-3 text-right font-bold text-sky-400">
                     {row.points}
                   </td>
-                  <td className="p-3 text-right text-zinc-300">{row.exactCount}</td>
-                  <td className="p-3 text-right text-zinc-300">
+                  <td className="p-3 text-right text-slate-300">{row.exactCount}</td>
+                  <td className="p-3 text-right text-slate-300">
                     {row.predictionCount}
                   </td>
                   {isOwner && (
@@ -130,7 +130,7 @@ export default async function GroupPage({
           <ConfirmButton
             action={leaveGroup.bind(null, group.id)}
             confirmMessage="¿Salir de este grupo?"
-            className="rounded-md border border-zinc-700 px-3 py-1.5 text-sm text-zinc-300 hover:bg-zinc-800"
+            className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:bg-slate-800"
           >
             Salir del grupo
           </ConfirmButton>

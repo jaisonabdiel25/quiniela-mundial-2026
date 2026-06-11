@@ -44,20 +44,20 @@ export default async function DashboardPage() {
           <div className="flex gap-2">
             <Link
               href="/groups/new"
-              className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-emerald-500"
+              className="rounded-md bg-sky-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-500"
             >
               Crear grupo
             </Link>
             <Link
               href="/groups/join"
-              className="rounded-md border border-zinc-700 px-3 py-1.5 text-sm text-zinc-200 hover:bg-zinc-800"
+              className="rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-200 hover:bg-slate-800"
             >
               Unirme con código
             </Link>
           </div>
         </div>
         {memberships.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-zinc-700 p-6 text-center text-zinc-400">
+          <p className="rounded-lg border border-dashed border-slate-700 p-6 text-center text-slate-400">
             Aún no perteneces a ningún grupo. Crea uno o únete con un código.
           </p>
         ) : (
@@ -66,15 +66,15 @@ export default async function DashboardPage() {
               <Link
                 key={group.id}
                 href={`/groups/${group.id}`}
-                className="rounded-lg border border-zinc-800 bg-zinc-900 p-4 hover:border-emerald-600"
+                className="rounded-lg border border-slate-800 bg-slate-900 p-4 hover:border-sky-600"
               >
                 <h2 className="font-semibold text-white">{group.name}</h2>
-                <p className="mt-1 text-sm text-zinc-400">
+                <p className="mt-1 text-sm text-slate-400">
                   {group._count.members}{" "}
                   {group._count.members === 1 ? "miembro" : "miembros"} · admin:{" "}
                   {group.owner.name}
                 </p>
-                <p className="mt-2 font-mono text-sm tracking-widest text-emerald-400">
+                <p className="mt-2 font-mono text-sm tracking-widest text-sky-400">
                   {group.code}
                 </p>
               </Link>
@@ -86,11 +86,11 @@ export default async function DashboardPage() {
       <section>
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white">Próximos partidos</h2>
-          <Link href="/matches" className="text-sm text-emerald-400 hover:underline">
+          <Link href="/matches" className="text-sm text-sky-400 hover:underline">
             Ver todos y predecir →
           </Link>
         </div>
-        <ul className="divide-y divide-zinc-800 rounded-lg border border-zinc-800 bg-zinc-900">
+        <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-900">
           {upcoming.map((m) => {
             const p = predictionByMatch.get(m.id);
             return (
@@ -98,19 +98,19 @@ export default async function DashboardPage() {
                 <div>
                   <p className="text-sm text-white">
                     <TeamLabel team={m.homeTeam} placeholder={m.homePlaceholder} />{" "}
-                    <span className="text-zinc-500">vs</span>{" "}
+                    <span className="text-slate-500">vs</span>{" "}
                     <TeamLabel team={m.awayTeam} placeholder={m.awayPlaceholder} />
                   </p>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-slate-500">
                     <KickoffTime date={m.kickoff} /> · {m.venue}
                   </p>
                 </div>
                 {p ? (
-                  <span className="rounded bg-zinc-800 px-2 py-1 font-mono text-sm text-emerald-400">
+                  <span className="rounded bg-slate-800 px-2 py-1 font-mono text-sm text-sky-400">
                     {p.homeScore}-{p.awayScore}
                   </span>
                 ) : (
-                  <span className="text-xs text-amber-400">Sin predicción</span>
+                  <span className="text-xs text-violet-400">Sin predicción</span>
                 )}
               </li>
             );
