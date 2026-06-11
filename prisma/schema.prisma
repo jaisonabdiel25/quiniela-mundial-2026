@@ -47,6 +47,7 @@ model Group {
   owner     User          @relation("GroupOwner", fields: [ownerId], references: [id])
   members   GroupMember[]
   createdAt DateTime      @default(now())
+  validFrom DateTime?
 }
 
 model GroupMember {

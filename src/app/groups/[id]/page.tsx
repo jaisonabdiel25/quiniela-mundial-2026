@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getGroupLeaderboard } from "@/lib/queries";
 import { deleteGroup, leaveGroup, removeMember } from "@/lib/actions/groups";
 import { ConfirmButton } from "@/components/confirm-button";
+import { ValidFromForm } from "@/components/group-forms";
 
 export default async function GroupPage({
   params,
@@ -40,7 +41,7 @@ export default async function GroupPage({
   }
 
   const isOwner = group.ownerId === userId;
-  const leaderboard = await getGroupLeaderboard(group.id);
+  const { rows: leaderboard, validFrom } = await getGroupLeaderboard(group.id);
 
   return (
     <div className="space-y-6">
@@ -60,9 +61,23 @@ export default async function GroupPage({
       </div>
 
       <section>
-        <h2 className="mb-2 text-lg font-semibold text-white">
-          Tabla de posiciones
-        </h2>
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold text-white">
+            Tabla de posiciones
+          </h2>
+          {validFrom && (
+            <span className="rounded-full border border-violet-700 bg-violet-950 px-3 py-0.5 text-xs text-violet-300">
+              Desde{" "}
+              {new Date(validFrom).toLocaleString("es", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          )}
+        </div>
         <div className="overflow-x-auto rounded-lg border border-slate-800">
           <table className="w-full bg-slate-900 text-sm">
             <thead>
@@ -116,6 +131,15 @@ export default async function GroupPage({
           </table>
         </div>
       </section>
+
+      {isOwner && (
+        <section className="rounded-lg border border-slate-800 bg-slate-900 p-4">
+          <h3 className="mb-3 text-sm font-semibold text-slate-300">
+            Configuración de la tabla
+          </h3>
+          <ValidFromForm groupId={group.id} validFrom={validFrom} />
+        </section>
+      )}
 
       <div className="flex gap-3">
         {isOwner ? (

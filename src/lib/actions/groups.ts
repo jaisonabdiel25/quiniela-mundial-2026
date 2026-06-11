@@ -111,3 +111,23 @@ export async function deleteGroup(groupId: string) {
   await prisma.group.delete({ where: { id: groupId } });
   redirect("/");
 }
+
+export async function setGroupValidFrom(
+  groupId: string,
+  _prev: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const userId = await requireUserId();
+  const group = await prisma.group.findUnique({ where: { id: groupId } });
+  if (!group || group.ownerId !== userId) return { error: "Sin permisos" };
+
+  const raw = formData.get("validFrom");
+  const parsed = z.coerce.date().nullable().safeParse(raw === "" ? null : raw);
+  if (!parsed.success) return { error: "Fecha inválida" };
+
+  await prisma.group.update({
+    where: { id: groupId },
+    data: { validFrom: parsed.data },
+  });
+  revalidatePath(`/groups/${groupId}`);
+}
