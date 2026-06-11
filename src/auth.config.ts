@@ -2,6 +2,7 @@ import type { NextAuthConfig } from "next-auth";
 
 // Configuración sin dependencias de base de datos: se comparte con proxy.ts
 export const authConfig = {
+  trustHost: true,
   pages: { signIn: "/login" },
   session: { strategy: "jwt" },
   providers: [],
