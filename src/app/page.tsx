@@ -104,13 +104,21 @@ export default async function DashboardPage() {
                     <KickoffTime date={m.kickoff} /> · {m.venue}
                   </p>
                 </div>
-                {p ? (
-                  <span className="rounded bg-slate-800 px-2 py-1 font-mono text-sm text-sky-400">
-                    {p.homeScore}-{p.awayScore}
-                  </span>
-                ) : (
-                  <span className="text-xs text-violet-400">Sin predicción</span>
-                )}
+                <div className="flex shrink-0 items-center gap-3">
+                  <Link
+                    href={`/matches/${m.id}`}
+                    className="rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:border-sky-600 hover:text-white"
+                  >
+                    Ver detalle
+                  </Link>
+                  {p ? (
+                    <span className="rounded bg-slate-800 px-2 py-1 font-mono text-sm text-sky-400">
+                      {p.homeScore}-{p.awayScore}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-violet-400">Sin predicción</span>
+                  )}
+                </div>
               </li>
             );
           })}

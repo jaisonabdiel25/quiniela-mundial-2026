@@ -43,6 +43,12 @@ function MatchRow({
         <p className="text-xs text-slate-500">
           <KickoffTime date={match.kickoff} /> · {match.venue}
         </p>
+        <Link
+          href={`/matches/${match.id}`}
+          className="mt-1.5 inline-block rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:border-sky-600 hover:text-white"
+        >
+          Ver detalle
+        </Link>
       </div>
       <div className="shrink-0">
         {!locked && !finished && match.homeTeamId && match.awayTeamId ? (
@@ -132,7 +138,7 @@ export default async function MatchesPage({
   if (!session?.user?.id) redirect("/login");
 
   const { view, hidePast } = await searchParams;
-  const byTime = view === "time";
+  const byTime = view !== "group";
   const hideFinished = hidePast !== "0";
   const now = new Date();
 

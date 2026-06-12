@@ -43,5 +43,6 @@ export async function savePrediction(
   });
 
   revalidatePath("/matches");
+  revalidatePath(`/matches/${matchId}`);
   return { ok: true };
 }
