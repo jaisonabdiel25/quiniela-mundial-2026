@@ -6,6 +6,7 @@ import { getGroupLeaderboard } from "@/lib/queries";
 import { deleteGroup, leaveGroup, removeMember } from "@/lib/actions/groups";
 import { ConfirmButton } from "@/components/confirm-button";
 import { ValidFromForm } from "@/components/group-forms";
+import { formatPanama } from "@/lib/timezone";
 
 export default async function GroupPage({
   params,
@@ -68,7 +69,7 @@ export default async function GroupPage({
           {validFrom && (
             <span className="rounded-full border border-violet-700 bg-violet-950 px-3 py-0.5 text-xs text-violet-300">
               Desde{" "}
-              {new Date(validFrom).toLocaleString("es", {
+              {formatPanama(validFrom, {
                 day: "numeric",
                 month: "short",
                 year: "numeric",
@@ -78,16 +79,25 @@ export default async function GroupPage({
             </span>
           )}
         </div>
-        <div className="overflow-x-auto rounded-lg border border-slate-800">
-          <table className="w-full bg-slate-900 text-sm">
+        <div className="overflow-hidden rounded-lg border border-slate-800">
+          <table className="w-full bg-slate-900 text-xs sm:text-sm">
             <thead>
               <tr className="border-b border-slate-800 text-left text-slate-400">
-                <th className="p-3">#</th>
-                <th className="p-3">Jugador</th>
-                <th className="p-3 text-right">Puntos</th>
-                <th className="p-3 text-right">Exactos</th>
-                <th className="p-3 text-right">Predicciones</th>
-                {isOwner && <th className="p-3" />}
+                <th className="px-2 py-2.5 sm:px-3">#</th>
+                <th className="px-2 py-2.5 sm:px-3">Jugador</th>
+                <th className="px-1.5 py-2.5 text-right sm:px-3" title="Puntos">
+                  <span className="sm:hidden">Pts</span>
+                  <span className="hidden sm:inline">Puntos</span>
+                </th>
+                <th className="px-1.5 py-2.5 text-right sm:px-3" title="Marcadores exactos">
+                  <span className="sm:hidden">Ex</span>
+                  <span className="hidden sm:inline">Exactos</span>
+                </th>
+                <th className="px-1.5 py-2.5 text-right sm:px-3" title="Predicciones">
+                  <span className="sm:hidden">Pred</span>
+                  <span className="hidden sm:inline">Predicciones</span>
+                </th>
+                {isOwner && <th className="px-2 py-2.5 sm:px-3" />}
               </tr>
             </thead>
             <tbody>
@@ -98,29 +108,48 @@ export default async function GroupPage({
                     row.userId === userId ? "bg-sky-950/40" : ""
                   }`}
                 >
-                  <td className="p-3 text-slate-400">{i + 1}</td>
-                  <td className="p-3 text-white">
-                    {row.name}
+                  <td className="px-2 py-2.5 text-slate-400 sm:px-3">{i + 1}</td>
+                  <td className="px-2 py-2.5 text-white sm:px-3">
+                    <span className="wrap-break-word">{row.name}</span>
                     {row.userId === group.ownerId && (
                       <span className="ml-2 text-xs text-violet-400">admin</span>
                     )}
                   </td>
-                  <td className="p-3 text-right font-bold text-sky-400">
+                  <td className="px-1.5 py-2.5 text-right font-bold text-sky-400 sm:px-3">
                     {row.points}
                   </td>
-                  <td className="p-3 text-right text-slate-300">{row.exactCount}</td>
-                  <td className="p-3 text-right text-slate-300">
+                  <td className="px-1.5 py-2.5 text-right text-slate-300 sm:px-3">
+                    {row.exactCount}
+                  </td>
+                  <td className="px-1.5 py-2.5 text-right text-slate-300 sm:px-3">
                     {row.predictionCount}
                   </td>
                   {isOwner && (
-                    <td className="p-3 text-right">
+                    <td className="px-2 py-2.5 text-right sm:px-3">
                       {row.userId !== userId && (
                         <ConfirmButton
                           action={removeMember.bind(null, group.id, row.userId)}
                           confirmMessage={`¿Expulsar a ${row.name} del grupo?`}
-                          className="text-xs text-red-400 hover:underline"
+                          className="text-red-400 hover:text-red-300"
                         >
-                          Expulsar
+                          <span className="hidden text-xs hover:underline sm:inline">
+                            Expulsar
+                          </span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="h-4 w-4 sm:hidden"
+                            aria-label="Expulsar"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z"
+                            />
+                          </svg>
                         </ConfirmButton>
                       )}
                     </td>

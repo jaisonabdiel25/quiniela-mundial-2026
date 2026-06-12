@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { createGroup, joinGroup, setGroupValidFrom } from "@/lib/actions/groups";
+import { toPanamaDatetimeLocal } from "@/lib/timezone";
 import type { FormState } from "@/lib/actions/auth";
 
 const inputClass =
@@ -46,11 +47,7 @@ export function ValidFromForm({
     undefined
   );
 
-  const currentValue = validFrom
-    ? new Date(new Date(validFrom).getTime() - new Date(validFrom).getTimezoneOffset() * 60000)
-        .toISOString()
-        .slice(0, 16)
-    : "";
+  const currentValue = validFrom ? toPanamaDatetimeLocal(validFrom) : "";
 
   return (
     <form action={formAction} className="space-y-2">

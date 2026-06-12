@@ -11,6 +11,7 @@ import {
   type MatchWithTeams,
 } from "@/lib/match-utils";
 import type { Prediction } from "@/generated/prisma/client";
+import { formatPanama } from "@/lib/timezone";
 
 export const dynamic = "force-dynamic";
 
@@ -251,7 +252,7 @@ function TimeView({
 
   const byDay = new Map<string, MatchWithTeams[]>();
   for (const m of sorted) {
-    const key = m.kickoff.toLocaleDateString("es", {
+    const key = formatPanama(m.kickoff, {
       weekday: "long",
       day: "numeric",
       month: "long",

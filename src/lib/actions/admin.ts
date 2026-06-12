@@ -59,6 +59,29 @@ export async function saveResult(
   return undefined;
 }
 
+export async function clearResult(matchId: number) {
+  await requireAdmin();
+
+  const match = await prisma.match.findUnique({ where: { id: matchId } });
+  // Solo se puede borrar el resultado de partidos que aún no han iniciado
+  if (!match || match.kickoff <= new Date()) return;
+
+  await prisma.$transaction([
+    prisma.match.update({
+      where: { id: matchId },
+      data: { homeScore: null, awayScore: null, status: "SCHEDULED" },
+    }),
+    // Quita los puntos calculados; el partido vuelve a estar abierto
+    prisma.prediction.updateMany({
+      where: { matchId },
+      data: { points: null },
+    }),
+  ]);
+
+  revalidatePath("/admin");
+  revalidatePath("/matches");
+}
+
 export async function assignTeams(
   matchId: number,
   _prev: FormState,

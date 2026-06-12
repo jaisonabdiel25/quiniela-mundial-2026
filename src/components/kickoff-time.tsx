@@ -1,4 +1,4 @@
-"use client";
+import { formatPanama } from "@/lib/timezone";
 
 const FORMAT: Intl.DateTimeFormatOptions = {
   weekday: "short",
@@ -10,10 +10,6 @@ const FORMAT: Intl.DateTimeFormatOptions = {
 
 export function KickoffTime({ date }: { date: Date | string }) {
   const d = new Date(date);
-  // suppressHydrationWarning: el servidor formatea en UTC y el navegador en hora local
-  return (
-    <time suppressHydrationWarning dateTime={d.toISOString()}>
-      {d.toLocaleString("es", FORMAT)}
-    </time>
-  );
+  // Siempre en hora de Panamá, igual en servidor y navegador (sin hydration mismatch).
+  return <time dateTime={d.toISOString()}>{formatPanama(d, FORMAT)}</time>;
 }

@@ -26,7 +26,6 @@ export default async function DashboardPage() {
     prisma.match.findMany({
       where: { kickoff: { gt: new Date() } },
       orderBy: { kickoff: "asc" },
-      take: 5,
       include: { homeTeam: true, awayTeam: true },
     }),
   ]);
@@ -85,7 +84,7 @@ export default async function DashboardPage() {
 
       <section>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">Próximos partidos</h2>
+          <h2 className="text-xl font-bold text-white">Partidos por jugar</h2>
           <Link href="/matches" className="text-sm text-sky-400 hover:underline">
             Ver todos y predecir →
           </Link>

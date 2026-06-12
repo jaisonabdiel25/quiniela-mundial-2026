@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { parsePanamaDatetimeLocal } from "@/lib/timezone";
 import type { FormState } from "@/lib/actions/auth";
 
 // Sin caracteres ambiguos (0/O, 1/I/L) para dictar el código fácilmente
@@ -122,12 +123,15 @@ export async function setGroupValidFrom(
   if (!group || group.ownerId !== userId) return { error: "Sin permisos" };
 
   const raw = formData.get("validFrom");
-  const parsed = z.coerce.date().nullable().safeParse(raw === "" ? null : raw);
-  if (!parsed.success) return { error: "Fecha inválida" };
+  let validFrom: Date | null = null;
+  if (typeof raw === "string" && raw !== "") {
+    validFrom = parsePanamaDatetimeLocal(raw);
+    if (!validFrom) return { error: "Fecha inválida" };
+  }
 
   await prisma.group.update({
     where: { id: groupId },
-    data: { validFrom: parsed.data },
+    data: { validFrom },
   });
   revalidatePath(`/groups/${groupId}`);
 }
