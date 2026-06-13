@@ -27,6 +27,12 @@ export function NavMenu({
       <Link href="/grupos" className={linkClass} onClick={close}>
         Grupos
       </Link>
+      <Link href="/terceros" className={linkClass} onClick={close}>
+        Mejores 3°
+      </Link>
+      <Link href="/eliminatoria" className={linkClass} onClick={close}>
+        Eliminatoria
+      </Link>
       <Link href="/reglas" className={linkClass} onClick={close}>
         Reglas
       </Link>

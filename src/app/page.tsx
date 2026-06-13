@@ -2,8 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { KickoffTime } from "@/components/kickoff-time";
-import { TeamLabel } from "@/components/team-label";
+import { UpcomingMatches } from "@/components/upcoming-matches";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -34,6 +33,24 @@ export default async function DashboardPage() {
     where: { userId, matchId: { in: upcoming.map((m) => m.id) } },
   });
   const predictionByMatch = new Map(predictions.map((p) => [p.matchId, p]));
+
+  const upcomingMatches = upcoming.map((m) => {
+    const p = predictionByMatch.get(m.id);
+    return {
+      id: m.id,
+      homeTeam: m.homeTeam
+        ? { name: m.homeTeam.name, fifaCode: m.homeTeam.fifaCode }
+        : null,
+      awayTeam: m.awayTeam
+        ? { name: m.awayTeam.name, fifaCode: m.awayTeam.fifaCode }
+        : null,
+      homePlaceholder: m.homePlaceholder,
+      awayPlaceholder: m.awayPlaceholder,
+      kickoff: m.kickoff.toISOString(),
+      venue: m.venue,
+      prediction: p ? { homeScore: p.homeScore, awayScore: p.awayScore } : null,
+    };
+  });
 
   return (
     <div className="space-y-8">
@@ -89,40 +106,7 @@ export default async function DashboardPage() {
             Ver todos y predecir →
           </Link>
         </div>
-        <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-900">
-          {upcoming.map((m) => {
-            const p = predictionByMatch.get(m.id);
-            return (
-              <li key={m.id} className="flex items-center justify-between gap-4 p-3">
-                <div>
-                  <p className="text-sm text-white">
-                    <TeamLabel team={m.homeTeam} placeholder={m.homePlaceholder} />{" "}
-                    <span className="text-slate-500">vs</span>{" "}
-                    <TeamLabel team={m.awayTeam} placeholder={m.awayPlaceholder} />
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    <KickoffTime date={m.kickoff} /> · {m.venue}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-3">
-                  <Link
-                    href={`/matches/${m.id}`}
-                    className="rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 transition-colors hover:border-sky-600 hover:text-white"
-                  >
-                    Ver detalle
-                  </Link>
-                  {p ? (
-                    <span className="rounded bg-slate-800 px-2 py-1 font-mono text-sm text-sky-400">
-                      {p.homeScore}-{p.awayScore}
-                    </span>
-                  ) : (
-                    <span className="text-xs text-violet-400">Sin predicción</span>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+        <UpcomingMatches matches={upcomingMatches} />
       </section>
     </div>
   );

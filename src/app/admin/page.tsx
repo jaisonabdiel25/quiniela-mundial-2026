@@ -5,10 +5,64 @@ import { KickoffTime } from "@/components/kickoff-time";
 import { ResultForm, AssignTeamsForm } from "@/components/admin-forms";
 import { TeamLabel } from "@/components/team-label";
 import { ConfirmButton } from "@/components/confirm-button";
-import { clearResult } from "@/lib/actions/admin";
+import { AdminSteps, type AdminStep } from "@/components/admin-steps";
+import {
+  autoAssignFromGroups,
+  autoAssignKnockoutRound,
+  clearResult,
+} from "@/lib/actions/admin";
 import { STAGE_LABELS, STAGE_ORDER } from "@/lib/match-utils";
+import type { Stage } from "@/generated/prisma/client";
 
 export const dynamic = "force-dynamic";
+
+// Panel con el botón de asignación automática (mismo estilo para todas las rondas).
+function AutoAssignPanel({
+  title,
+  description,
+  note,
+  buttonLabel,
+  confirmMessage,
+  action,
+  disabled,
+}: {
+  title: string;
+  description: string;
+  note: string;
+  buttonLabel: string;
+  confirmMessage: string;
+  action: () => Promise<void>;
+  disabled: boolean;
+}) {
+  return (
+    <div className="rounded-lg border border-slate-800 bg-slate-900 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="font-medium text-white">{title}</h2>
+          <p className="mt-1 text-xs text-slate-500">{description}</p>
+          {disabled && <p className="mt-1 text-xs text-amber-400">{note}</p>}
+        </div>
+        <ConfirmButton
+          action={action}
+          disabled={disabled}
+          confirmMessage={confirmMessage}
+          className="shrink-0 rounded-md bg-sky-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-sky-600"
+        >
+          {buttonLabel}
+        </ConfirmButton>
+      </div>
+    </div>
+  );
+}
+
+// Para cada ronda eliminatoria, la ronda que la alimenta (para validar/asignar).
+const PREVIOUS_STAGE: Partial<Record<Stage, Stage>> = {
+  ROUND_16: "ROUND_32",
+  QUARTER: "ROUND_16",
+  SEMI: "QUARTER",
+  THIRD_PLACE: "SEMI",
+  FINAL: "SEMI",
+};
 
 export default async function AdminPage() {
   const session = await auth();
@@ -32,28 +86,57 @@ export default async function AdminPage() {
         </p>
       </div>
 
-      {STAGE_ORDER.map((stage) => {
-        const stageMatches = matches.filter((m) => m.stage === stage);
-        if (stageMatches.length === 0) return null;
-        const pendingCount = stageMatches.filter(
-          (m) => m.status !== "FINISHED"
-        ).length;
+      {(() => {
+        const stages = STAGE_ORDER.filter((stage) =>
+          matches.some((m) => m.stage === stage)
+        );
 
-        return (
-          <details
-            key={stage}
-            className="rounded-lg border border-slate-800 bg-slate-900"
-            open={stage === "GROUP"}
-          >
-            <summary className="cursor-pointer p-3 font-medium text-white">
-              {STAGE_LABELS[stage]}{" "}
-              <span className="text-sm text-slate-500">
-                ({stageMatches.length - pendingCount}/{stageMatches.length} con
-                resultado)
-              </span>
-            </summary>
-            <ul className="divide-y divide-slate-800 border-t border-slate-800">
-              {stageMatches.map((m) => (
+        // Una ronda está "completa" si tiene partidos y todos finalizaron.
+        const stageAllFinished = (s: Stage) => {
+          const sm = matches.filter((m) => m.stage === s);
+          return sm.length > 0 && sm.every((m) => m.status === "FINISHED");
+        };
+        // El botón de auto-asignar 16avos depende de la fase de grupos.
+        const groupComplete = stageAllFinished("GROUP");
+
+        const steps: AdminStep[] = stages.map((stage) => {
+          const sm = matches.filter((m) => m.stage === stage);
+          return {
+            label: STAGE_LABELS[stage],
+            done: sm.filter((m) => m.status === "FINISHED").length,
+            total: sm.length,
+          };
+        });
+
+        const panels = stages.map((stage) => {
+          const stageMatches = matches.filter((m) => m.stage === stage);
+          const prevStage = PREVIOUS_STAGE[stage];
+          return (
+            <div key={stage} className="space-y-3">
+              {stage === "ROUND_32" && (
+                <AutoAssignPanel
+                  title="Asignar 16avos automáticamente"
+                  description="Coloca al 1° y 2° de cada grupo en sus cruces según las posiciones actuales. Solo te quedará asignar a mano los terceros."
+                  note="Disponible cuando todos los partidos de la fase de grupos estén finalizados."
+                  buttonLabel="Asignar 1° y 2° automáticamente"
+                  confirmMessage="¿Asignar los 16avos con el 1° y 2° actuales de cada grupo? Sobrescribe los equipos ya puestos en esos cruces (no toca los terceros ni partidos finalizados)."
+                  action={autoAssignFromGroups}
+                  disabled={!groupComplete}
+                />
+              )}
+              {prevStage && (
+                <AutoAssignPanel
+                  title={`Asignar ${STAGE_LABELS[stage].toLowerCase()} automáticamente`}
+                  description="Coloca a los ganadores de cada cruce de la ronda anterior (y los perdedores, en el partido por el tercer puesto)."
+                  note={`Disponible cuando "${STAGE_LABELS[prevStage]}" esté completa.`}
+                  buttonLabel="Asignar según la ronda anterior"
+                  confirmMessage={`¿Asignar ${STAGE_LABELS[stage]} con los ganadores de la ronda anterior? Sobrescribe los equipos ya puestos (no toca partidos finalizados ni cruces empatados).`}
+                  action={autoAssignKnockoutRound.bind(null, stage)}
+                  disabled={!stageAllFinished(prevStage)}
+                />
+              )}
+              <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-900">
+                {stageMatches.map((m) => (
                 <li key={m.id} className="space-y-2 p-3">
                   <p className="text-sm text-white">
                     <span className="mr-2 text-xs text-slate-600">
@@ -119,10 +202,13 @@ export default async function AdminPage() {
                   </div>
                 </li>
               ))}
-            </ul>
-          </details>
-        );
-      })}
+              </ul>
+            </div>
+          );
+        });
+
+        return <AdminSteps steps={steps} panels={panels} />;
+      })()}
     </div>
   );
 }

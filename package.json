@@ -13,7 +13,10 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:simulate": "tsx prisma/simulate-groups.ts",
+    "db:simulate:reset": "tsx prisma/simulate-groups.ts --reset",
+    "db:reset:knockout": "tsx prisma/reset-knockout.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

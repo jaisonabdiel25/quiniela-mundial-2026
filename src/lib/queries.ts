@@ -104,6 +104,29 @@ export async function getGroupStandings(): Promise<GroupStandings[]> {
     }));
 }
 
+export type BestThirdRow = TeamStanding & { letter: string };
+
+// Clasificación de los terceros de cada grupo (los 8 mejores avanzan).
+// Orden: 1° más puntos, 2° mejor diferencia de goles, 3° más goles anotados.
+export async function getBestThirds(): Promise<BestThirdRow[]> {
+  const groups = await getGroupStandings();
+
+  const thirds = groups
+    .map((g) => {
+      const third = g.teams[2];
+      return third ? { ...third, letter: g.letter } : null;
+    })
+    .filter((t): t is BestThirdRow => t !== null);
+
+  return thirds.sort(
+    (a, b) =>
+      b.points - a.points ||
+      b.goalDiff - a.goalDiff ||
+      b.goalsFor - a.goalsFor ||
+      a.name.localeCompare(b.name)
+  );
+}
+
 export type LeaderboardRow = {
   userId: string;
   name: string;

@@ -5,17 +5,24 @@ type Props = {
   confirmMessage: string;
   children: React.ReactNode;
   className?: string;
+  disabled?: boolean;
 };
 
-export function ConfirmButton({ action, confirmMessage, children, className }: Props) {
+export function ConfirmButton({
+  action,
+  confirmMessage,
+  children,
+  className,
+  disabled,
+}: Props) {
   return (
     <form
       action={action}
       onSubmit={(e) => {
-        if (!confirm(confirmMessage)) e.preventDefault();
+        if (disabled || !confirm(confirmMessage)) e.preventDefault();
       }}
     >
-      <button type="submit" className={className}>
+      <button type="submit" className={className} disabled={disabled}>
         {children}
       </button>
     </form>
