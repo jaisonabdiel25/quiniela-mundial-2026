@@ -13,6 +13,7 @@ export type UpcomingMatch = {
   awayPlaceholder: string | null;
   kickoff: string;
   venue: string;
+  live?: boolean;
   prediction: { homeScore: number; awayScore: number } | null;
 };
 
@@ -77,6 +78,11 @@ export function UpcomingMatches({ matches }: { matches: UpcomingMatch[] }) {
                     <TeamLabel team={m.awayTeam} placeholder={m.awayPlaceholder} />
                   </p>
                   <p className="text-xs text-slate-500">
+                    {m.live ? (
+                      <span className="mr-1 font-medium text-violet-400">
+                        En juego ·
+                      </span>
+                    ) : null}
                     <KickoffTime date={m.kickoff} /> · {m.venue}
                   </p>
                 </div>

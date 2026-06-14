@@ -6,6 +6,7 @@ import { getGroupLeaderboard } from "@/lib/queries";
 import { deleteGroup, leaveGroup, removeMember } from "@/lib/actions/groups";
 import { ConfirmButton } from "@/components/confirm-button";
 import { ValidFromForm } from "@/components/group-forms";
+import { MemberPredictionsModal } from "@/components/member-predictions-modal";
 import { formatPanama } from "@/lib/timezone";
 
 export default async function GroupPage({
@@ -110,7 +111,11 @@ export default async function GroupPage({
                 >
                   <td className="px-2 py-2.5 text-slate-400 sm:px-3">{i + 1}</td>
                   <td className="px-2 py-2.5 text-white sm:px-3">
-                    <span className="wrap-break-word">{row.name}</span>
+                    <MemberPredictionsModal
+                      groupId={group.id}
+                      userId={row.userId}
+                      name={row.name}
+                    />
                     {row.userId === group.ownerId && (
                       <span className="ml-2 text-xs text-violet-400">admin</span>
                     )}

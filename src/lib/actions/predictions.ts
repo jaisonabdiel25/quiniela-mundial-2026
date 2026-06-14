@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import type { Stage } from "@/generated/prisma/client";
 
 const scoreSchema = z.coerce.number().int().min(0).max(99);
 
@@ -45,4 +46,91 @@ export async function savePrediction(
   revalidatePath("/matches");
   revalidatePath(`/matches/${matchId}`);
   return { ok: true };
+}
+
+export type MemberPredictionRow = {
+  matchId: number;
+  matchNumber: number;
+  kickoff: Date;
+  stage: Stage;
+  homeTeam: { name: string; fifaCode: string } | null;
+  awayTeam: { name: string; fifaCode: string } | null;
+  homePlaceholder: string | null;
+  awayPlaceholder: string | null;
+  homeScore: number | null;
+  awayScore: number | null;
+  finished: boolean;
+  predHome: number | null;
+  predAway: number | null;
+  points: number | null;
+};
+
+export type MemberPredictionsResult =
+  | { ok: true; name: string; rows: MemberPredictionRow[] }
+  | { error: string };
+
+// Devuelve las predicciones de un integrante del grupo solo para los partidos
+// que ya empezaron (kickoff <= ahora), respetando la ventana validFrom del grupo.
+// Nunca expone predicciones de partidos futuros (aún sin bloquear).
+export async function getMemberPredictions(
+  groupId: string,
+  targetUserId: string
+): Promise<MemberPredictionsResult> {
+  const session = await auth();
+  if (!session?.user?.id) return { error: "Debes iniciar sesión" };
+
+  // El solicitante debe pertenecer al grupo para ver predicciones de otros.
+  const requester = await prisma.groupMember.findUnique({
+    where: { userId_groupId: { userId: session.user.id, groupId } },
+  });
+  if (!requester) return { error: "No perteneces a este grupo" };
+
+  const [group, target] = await Promise.all([
+    prisma.group.findUnique({ where: { id: groupId }, select: { validFrom: true } }),
+    prisma.groupMember.findUnique({
+      where: { userId_groupId: { userId: targetUserId, groupId } },
+      include: { user: { select: { name: true } } },
+    }),
+  ]);
+  if (!group) return { error: "El grupo no existe" };
+  if (!target) return { error: "El jugador no pertenece a este grupo" };
+
+  const now = new Date();
+  const matches = await prisma.match.findMany({
+    where: {
+      kickoff: { lte: now, ...(group.validFrom ? { gte: group.validFrom } : {}) },
+    },
+    include: {
+      homeTeam: { select: { name: true, fifaCode: true } },
+      awayTeam: { select: { name: true, fifaCode: true } },
+    },
+    orderBy: { kickoff: "asc" },
+  });
+
+  const predictions = await prisma.prediction.findMany({
+    where: { userId: targetUserId, matchId: { in: matches.map((m) => m.id) } },
+  });
+  const predByMatch = new Map(predictions.map((p) => [p.matchId, p]));
+
+  const rows: MemberPredictionRow[] = matches.map((m) => {
+    const pred = predByMatch.get(m.id);
+    return {
+      matchId: m.id,
+      matchNumber: m.matchNumber,
+      kickoff: m.kickoff,
+      stage: m.stage,
+      homeTeam: m.homeTeam,
+      awayTeam: m.awayTeam,
+      homePlaceholder: m.homePlaceholder,
+      awayPlaceholder: m.awayPlaceholder,
+      homeScore: m.homeScore,
+      awayScore: m.awayScore,
+      finished: m.status === "FINISHED",
+      predHome: pred?.homeScore ?? null,
+      predAway: pred?.awayScore ?? null,
+      points: pred?.points ?? null,
+    };
+  });
+
+  return { ok: true, name: target.user.name, rows };
 }
