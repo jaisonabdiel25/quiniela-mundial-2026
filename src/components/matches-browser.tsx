@@ -237,7 +237,9 @@ export function MatchesBrowser({
 
       {filtered.length === 0 ? (
         <p className="rounded-lg border border-dashed border-slate-700 p-6 text-center text-slate-400">
-          No hay partidos que coincidan con “{debounced}”.
+          {searching
+            ? `No hay partidos que coincidan con “${debounced}”.`
+            : "No hay partidos para mostrar con los filtros actuales."}
         </p>
       ) : view === "time" ? (
         <TimeView matches={filtered} />

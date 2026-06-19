@@ -3,32 +3,77 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { MatchesBrowser, type BrowserMatch } from "@/components/matches-browser";
+import { formatPanama } from "@/lib/timezone";
 
 export const dynamic = "force-dynamic";
+
+// Clave de día (hora de Panamá) para comparar "mismo día" sin importar la hora.
+const DAY_KEY: Intl.DateTimeFormatOptions = {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+};
+
+type DayFilter = "today" | "tomorrow" | "all";
+
+const DAY_OPTIONS: { value: DayFilter; label: string }[] = [
+  { value: "today", label: "Hoy" },
+  { value: "tomorrow", label: "Mañana" },
+  { value: "all", label: "Todos" },
+];
+
+// Construye el querystring conservando los demás filtros activos.
+function buildHref({
+  view,
+  hidePast,
+  day,
+}: {
+  view: "group" | "time";
+  hidePast: boolean;
+  day: DayFilter;
+}) {
+  const sp = new URLSearchParams();
+  sp.set("view", view);
+  if (!hidePast) sp.set("hidePast", "0");
+  if (day !== "today") sp.set("day", day);
+  return `?${sp.toString()}`;
+}
 
 function ViewToggle({
   current,
   hidePast,
+  day,
 }: {
   current: "group" | "time";
   hidePast: boolean;
+  day: DayFilter;
 }) {
   const base = "px-3 py-1.5 text-sm rounded-md transition-colors";
   const active = "bg-slate-700 text-white";
   const inactive = "text-slate-400 hover:text-white";
-  const showParam = hidePast ? "" : "&hidePast=0";
   return (
     <div className="flex flex-wrap items-center gap-2">
       <div className="flex gap-1 rounded-lg border border-slate-700 bg-slate-900 p-1">
-        <Link href={`?view=group${showParam}`} className={`${base} ${current === "group" ? active : inactive}`}>
+        <Link href={buildHref({ view: "group", hidePast, day })} className={`${base} ${current === "group" ? active : inactive}`}>
           Por grupos
         </Link>
-        <Link href={`?view=time${showParam}`} className={`${base} ${current === "time" ? active : inactive}`}>
+        <Link href={buildHref({ view: "time", hidePast, day })} className={`${base} ${current === "time" ? active : inactive}`}>
           Por hora
         </Link>
       </div>
+      <div className="flex gap-1 rounded-lg border border-slate-700 bg-slate-900 p-1">
+        {DAY_OPTIONS.map((opt) => (
+          <Link
+            key={opt.value}
+            href={buildHref({ view: current, hidePast, day: opt.value })}
+            className={`${base} ${day === opt.value ? active : inactive}`}
+          >
+            {opt.label}
+          </Link>
+        ))}
+      </div>
       <Link
-        href={`?view=${current}${hidePast ? "&hidePast=0" : ""}`}
+        href={buildHref({ view: current, hidePast: !hidePast, day })}
         className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm transition-colors ${
           hidePast
             ? "border-sky-700 bg-sky-950 text-sky-300"
@@ -47,15 +92,23 @@ function ViewToggle({
 export default async function MatchesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string; hidePast?: string }>;
+  searchParams: Promise<{ view?: string; hidePast?: string; day?: string }>;
 }) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  const { view, hidePast } = await searchParams;
+  const { view, hidePast, day } = await searchParams;
   const byTime = view !== "group";
   const hideFinished = hidePast !== "0";
+  const dayFilter: DayFilter =
+    day === "tomorrow" || day === "all" ? day : "today";
   const now = new Date();
+  // Clave del día objetivo (Panamá): hoy o mañana. America/Panama es UTC-5 fijo,
+  // así que sumar 24h siempre avanza un día de calendario.
+  const targetDayKey =
+    dayFilter === "tomorrow"
+      ? formatPanama(new Date(now.getTime() + 24 * 60 * 60 * 1000), DAY_KEY)
+      : formatPanama(now, DAY_KEY);
 
   const [allMatches, predictions] = await Promise.all([
     prisma.match.findMany({
@@ -67,15 +120,18 @@ export default async function MatchesPage({
   // Un partido "en juego" es uno que ya inició pero no ha terminado. Lo
   // mostramos dentro de una ventana razonable tras el inicio (~2.5h).
   const LIVE_WINDOW_MS = 2.5 * 60 * 60 * 1000;
-  const matches = hideFinished
-    ? allMatches.filter((m) => {
-        if (m.kickoff > now) return true;
-        return (
-          m.status !== "FINISHED" &&
-          now.getTime() - m.kickoff.getTime() <= LIVE_WINDOW_MS
-        );
-      })
-    : allMatches;
+  const matches = allMatches.filter((m) => {
+    if (dayFilter !== "all" && formatPanama(m.kickoff, DAY_KEY) !== targetDayKey)
+      return false;
+    if (hideFinished) {
+      if (m.kickoff > now) return true;
+      return (
+        m.status !== "FINISHED" &&
+        now.getTime() - m.kickoff.getTime() <= LIVE_WINDOW_MS
+      );
+    }
+    return true;
+  });
   const predictionByMatch = new Map(predictions.map((p) => [p.matchId, p]));
 
   const browserMatches: BrowserMatch[] = matches.map((m) => {
@@ -116,7 +172,7 @@ export default async function MatchesPage({
             marcador exacto, 1 por acertar el resultado.
           </p>
         </div>
-        <ViewToggle current={byTime ? "time" : "group"} hidePast={hideFinished} />
+        <ViewToggle current={byTime ? "time" : "group"} hidePast={hideFinished} day={dayFilter} />
       </div>
 
       <MatchesBrowser matches={browserMatches} view={byTime ? "time" : "group"} />

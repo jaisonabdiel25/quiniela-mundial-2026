@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState, type ReactNode } from "react";
+import { AdminFiltersContext } from "@/components/match-list";
 
 export type AdminStep = {
   label: string;
@@ -16,9 +17,27 @@ export function AdminSteps({
   panels: ReactNode[];
 }) {
   const [active, setActive] = useState(0);
+  const [showFinished, setShowFinished] = useState(false);
 
   return (
+    <AdminFiltersContext.Provider value={{ showFinished }}>
     <div className="space-y-4">
+      {/* Switch para mostrar/ocultar los partidos ya jugados (finalizados y
+          con kickoff pasado). Oculto por defecto para enfocar lo pendiente. */}
+      <label className="flex cursor-pointer items-center justify-end gap-2 text-sm text-slate-300">
+        <span>Mostrar partidos jugados</span>
+        <span className="relative inline-flex">
+          <input
+            type="checkbox"
+            checked={showFinished}
+            onChange={(e) => setShowFinished(e.target.checked)}
+            className="peer sr-only"
+          />
+          <span className="h-5 w-9 rounded-full bg-slate-700 transition-colors peer-checked:bg-sky-600" />
+          <span className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white transition-transform peer-checked:translate-x-4" />
+        </span>
+      </label>
+
       {/* Barra de pasos: círculos numerados que se estiran a todo el ancho
           (sin scroll). El nombre de la fase activa va debajo. */}
       <nav className="space-y-2">
@@ -85,5 +104,6 @@ export function AdminSteps({
         </button>
       </div>
     </div>
+    </AdminFiltersContext.Provider>
   );
 }

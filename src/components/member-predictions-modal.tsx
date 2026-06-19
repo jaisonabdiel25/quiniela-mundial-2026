@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { Modal } from "@/components/modal";
 import { KickoffTime } from "@/components/kickoff-time";
 import { TeamLabel } from "@/components/team-label";
@@ -84,10 +84,9 @@ export function MemberPredictionsModal({
   const [selectedDay, setSelectedDay] = useState<string>("");
   const [pending, startTransition] = useTransition();
 
-  const rows = result && "ok" in result ? result.rows : [];
-
   // Agrupa los partidos por día (hora de Panamá), conservando el orden cronológico.
   const days = useMemo(() => {
+    const rows = result && "ok" in result ? result.rows : [];
     const map = new Map<string, { label: string; rows: MemberPredictionRow[] }>();
     for (const row of rows) {
       const key = formatPanama(row.kickoff, DAY_KEY);
@@ -97,15 +96,18 @@ export function MemberPredictionsModal({
       map.get(key)!.rows.push(row);
     }
     return map;
-  }, [rows]);
+  }, [result]);
 
-  // Al cargar los datos, seleccionar el día actual (o el más reciente disponible).
-  useEffect(() => {
-    if (days.size === 0) return;
+  // Día por defecto (el actual, o el más reciente disponible). El día efectivo
+  // es el que eligió el usuario o, si no eligió, este por defecto.
+  const defaultDay = useMemo(() => {
+    if (days.size === 0) return "";
     const keys = [...days.keys()];
     const todayKey = formatPanama(new Date(), DAY_KEY);
-    setSelectedDay(keys.includes(todayKey) ? todayKey : keys[keys.length - 1]);
+    return keys.includes(todayKey) ? todayKey : keys[keys.length - 1];
   }, [days]);
+
+  const currentKey = selectedDay || defaultDay;
 
   function handleOpen() {
     setOpen(true);
@@ -116,7 +118,7 @@ export function MemberPredictionsModal({
     }
   }
 
-  const currentDay = days.get(selectedDay);
+  const currentDay = days.get(currentKey);
 
   return (
     <>
@@ -167,7 +169,7 @@ export function MemberPredictionsModal({
             <label className="flex items-center gap-2 text-sm text-slate-400">
               Día:
               <select
-                value={selectedDay}
+                value={currentKey}
                 onChange={(e) => setSelectedDay(e.target.value)}
                 className="flex-1 rounded-md border border-slate-700 bg-slate-800 px-2 py-1.5 text-sm capitalize text-white focus:border-sky-600 focus:outline-none"
               >

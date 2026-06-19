@@ -6,6 +6,7 @@ import { ResultForm, AssignTeamsForm } from "@/components/admin-forms";
 import { TeamLabel } from "@/components/team-label";
 import { ConfirmButton } from "@/components/confirm-button";
 import { AdminSteps, type AdminStep } from "@/components/admin-steps";
+import { MatchList } from "@/components/match-list";
 import {
   autoAssignFromGroups,
   autoAssignKnockoutRound,
@@ -67,6 +68,8 @@ const PREVIOUS_STAGE: Partial<Record<Stage, Stage>> = {
 export default async function AdminPage() {
   const session = await auth();
   if (session?.user?.role !== "ADMIN") redirect("/");
+
+  const now = new Date();
 
   const [matches, teams] = await Promise.all([
     prisma.match.findMany({
@@ -135,9 +138,12 @@ export default async function AdminPage() {
                   disabled={!stageAllFinished(prevStage)}
                 />
               )}
-              <ul className="divide-y divide-slate-800 rounded-lg border border-slate-800 bg-slate-900">
-                {stageMatches.map((m) => (
-                <li key={m.id} className="space-y-2 p-3">
+              <MatchList
+                items={stageMatches.map((m) => ({
+                  key: m.id,
+                  hideable: m.status === "FINISHED" && m.kickoff <= now,
+                  node: (
+                  <>
                   <p className="text-sm text-white">
                     <span className="mr-2 text-xs text-slate-600">
                       P{m.matchNumber}
@@ -200,9 +206,10 @@ export default async function AdminPage() {
                       </ConfirmButton>
                     )}
                   </div>
-                </li>
-              ))}
-              </ul>
+                  </>
+                  ),
+                }))}
+              />
             </div>
           );
         });
