@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Stage } from "@/generated/prisma/client";
 
 export type TeamStanding = {
   teamId: number;
@@ -200,4 +201,77 @@ export async function getGroupLeaderboard(
     );
 
   return { rows, validFrom };
+}
+
+export type PointsMatrixMatch = {
+  matchId: number;
+  matchNumber: number;
+  stage: Stage;
+  kickoff: Date;
+  finished: boolean;
+  homeScore: number | null;
+  awayScore: number | null;
+  homeTeam: { name: string; fifaCode: string } | null;
+  awayTeam: { name: string; fifaCode: string } | null;
+  homePlaceholder: string | null;
+  awayPlaceholder: string | null;
+};
+
+export type GroupPointsMatrix = {
+  matches: PointsMatrixMatch[];
+  // clave `${userId}:${matchId}` -> puntos de la predicción (null si aún sin puntuar)
+  points: Map<string, number | null>;
+};
+
+// Matriz de puntos por partido y participante. Solo expone partidos que ya
+// empezaron (kickoff <= ahora), respetando la ventana validFrom del grupo —
+// nunca revela predicciones de partidos futuros. Confía en el guard de la
+// página (igual que getGroupLeaderboard), no re-verifica membresía.
+export async function getGroupPointsMatrix(
+  groupId: string
+): Promise<GroupPointsMatrix> {
+  const [group, members] = await Promise.all([
+    prisma.group.findUnique({ where: { id: groupId }, select: { validFrom: true } }),
+    prisma.groupMember.findMany({ where: { groupId }, select: { userId: true } }),
+  ]);
+
+  const validFrom = group?.validFrom ?? null;
+  const userIds = members.map((m) => m.userId);
+  const now = new Date();
+
+  const matchRecords = await prisma.match.findMany({
+    where: {
+      kickoff: { lte: now, ...(validFrom ? { gte: validFrom } : {}) },
+    },
+    include: {
+      homeTeam: { select: { name: true, fifaCode: true } },
+      awayTeam: { select: { name: true, fifaCode: true } },
+    },
+    orderBy: { kickoff: "asc" },
+  });
+
+  const predictions = await prisma.prediction.findMany({
+    where: { userId: { in: userIds }, matchId: { in: matchRecords.map((m) => m.id) } },
+    select: { userId: true, matchId: true, points: true },
+  });
+
+  const points = new Map<string, number | null>(
+    predictions.map((p) => [`${p.userId}:${p.matchId}`, p.points])
+  );
+
+  const matches: PointsMatrixMatch[] = matchRecords.map((m) => ({
+    matchId: m.id,
+    matchNumber: m.matchNumber,
+    stage: m.stage,
+    kickoff: m.kickoff,
+    finished: m.status === "FINISHED",
+    homeScore: m.homeScore,
+    awayScore: m.awayScore,
+    homeTeam: m.homeTeam,
+    awayTeam: m.awayTeam,
+    homePlaceholder: m.homePlaceholder,
+    awayPlaceholder: m.awayPlaceholder,
+  }));
+
+  return { matches, points };
 }

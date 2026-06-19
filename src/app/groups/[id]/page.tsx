@@ -2,11 +2,12 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { getGroupLeaderboard } from "@/lib/queries";
+import { getGroupLeaderboard, getGroupPointsMatrix } from "@/lib/queries";
 import { deleteGroup, leaveGroup, removeMember } from "@/lib/actions/groups";
 import { ConfirmButton } from "@/components/confirm-button";
 import { ValidFromForm } from "@/components/group-forms";
 import { MemberPredictionsModal } from "@/components/member-predictions-modal";
+import { GroupPointsMatrix } from "@/components/group-points-matrix";
 import { formatPanama } from "@/lib/timezone";
 
 export default async function GroupPage({
@@ -43,7 +44,10 @@ export default async function GroupPage({
   }
 
   const isOwner = group.ownerId === userId;
-  const { rows: leaderboard, validFrom } = await getGroupLeaderboard(group.id);
+  const [{ rows: leaderboard, validFrom }, pointsMatrix] = await Promise.all([
+    getGroupLeaderboard(group.id),
+    getGroupPointsMatrix(group.id),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -165,6 +169,26 @@ export default async function GroupPage({
           </table>
         </div>
       </section>
+
+      <details className="group rounded-lg border border-slate-800 bg-slate-900">
+        <summary className="flex cursor-pointer items-center justify-between gap-2 p-3 text-lg font-semibold text-white">
+          Puntos por partido
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="h-5 w-5 shrink-0 text-slate-400 transition-transform group-open:rotate-180"
+            aria-hidden
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </summary>
+        <div className="border-t border-slate-800 p-3">
+          <GroupPointsMatrix members={leaderboard} matrix={pointsMatrix} />
+        </div>
+      </details>
 
       {isOwner && (
         <section className="rounded-lg border border-slate-800 bg-slate-900 p-4">
