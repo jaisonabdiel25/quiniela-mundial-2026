@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { getGroupStandings } from "@/lib/queries";
 import { GroupStandingsTable } from "@/components/group-standings-table";
@@ -131,7 +131,7 @@ export default async function MatchDetailPage({
   params: Promise<{ matchId: string }>;
 }) {
   const { matchId: matchIdParam } = await params;
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect("/login");
   const userId = session.user.id;
 

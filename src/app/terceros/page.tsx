@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/session";
 import { getBestThirds } from "@/lib/queries";
 import { TeamFlag } from "@/components/team-label";
 
@@ -13,7 +13,7 @@ export const metadata = {
 const QUALIFY = 8;
 
 export default async function TercerosPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect("/login");
 
   const thirds = await getBestThirds();

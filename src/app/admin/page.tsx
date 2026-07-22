@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { KickoffTime } from "@/components/kickoff-time";
 import { ResultForm, AssignTeamsForm } from "@/components/admin-forms";
@@ -66,7 +66,7 @@ const PREVIOUS_STAGE: Partial<Record<Stage, Stage>> = {
 };
 
 export default async function AdminPage() {
-  const session = await auth();
+  const session = await getSession();
   if (session?.user?.role !== "ADMIN") redirect("/");
 
   const now = new Date();

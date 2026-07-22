@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/session";
 import { getGroupStandings } from "@/lib/queries";
 import { GroupStandingsTable } from "@/components/group-standings-table";
 
@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function GruposPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect("/login");
 
   const groups = await getGroupStandings();

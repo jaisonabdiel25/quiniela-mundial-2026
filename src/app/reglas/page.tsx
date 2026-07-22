@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/session";
 
 export const metadata = {
   title: "Reglas del juego · Quiniela Mundial 2026",
@@ -32,7 +32,7 @@ function Rule({
 }
 
 export default async function ReglasPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect("/login");
 
   return (

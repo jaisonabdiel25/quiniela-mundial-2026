@@ -1,11 +1,11 @@
-import { auth } from "@/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { MyGroupsBar, type GroupCard } from "@/components/my-groups-bar";
 
 // Obtiene los grupos del usuario y los entrega a la barra cliente, que decide su
 // visibilidad según la ruta. Devuelve null si no hay sesión (login/register).
 export async function MyGroups() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) return null;
 
   const memberships = await prisma.groupMember.findMany({

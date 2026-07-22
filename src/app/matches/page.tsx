@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { MatchesBrowser, type BrowserMatch } from "@/components/matches-browser";
 import { formatPanama } from "@/lib/timezone";
@@ -94,7 +94,7 @@ export default async function MatchesPage({
 }: {
   searchParams: Promise<{ view?: string; hidePast?: string; day?: string }>;
 }) {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect("/login");
 
   const { view, hidePast, day } = await searchParams;

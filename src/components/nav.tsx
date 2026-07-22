@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/session";
 import { NavMenu } from "@/components/nav-menu";
 
 export async function Nav() {
-  const session = await auth();
+  const session = await getSession();
 
   return (
     <header className="relative border-b border-slate-800 bg-slate-950">

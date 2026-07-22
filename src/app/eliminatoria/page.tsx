@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { getSession } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 import { TeamFlag } from "@/components/team-label";
 import { type MatchWithTeams } from "@/lib/match-utils";
@@ -176,7 +176,7 @@ function BracketCard({
 }
 
 export default async function EliminatoriaPage() {
-  const session = await auth();
+  const session = await getSession();
   if (!session?.user?.id) redirect("/login");
 
   const [matches, predictions, standings] = await Promise.all([
