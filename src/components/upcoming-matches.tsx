@@ -50,6 +50,40 @@ export function UpcomingMatches({ matches }: { matches: UpcomingMatch[] }) {
   const start = (currentPage - 1) * PAGE_SIZE;
   const pageMatches = filtered.slice(start, start + PAGE_SIZE);
 
+  // Sin partidos por jugar (p. ej. el Mundial terminó): estado vacío amable,
+  // sin buscador (no tiene sentido buscar en una lista vacía). El mensaje de
+  // "no coincide la búsqueda" de abajo solo aplica cuando sí hay partidos.
+  if (matches.length === 0) {
+    return (
+      <div className="rounded-lg border border-dashed border-slate-700 p-8 text-center">
+        <div className="text-4xl" aria-hidden>
+          🏆
+        </div>
+        <p className="mt-3 font-medium text-slate-200">
+          No hay partidos por jugar
+        </p>
+        <p className="mt-1 text-sm text-slate-400">
+          El Mundial 2026 llegó a su fin. Revisa los resultados y las tablas
+          finales.
+        </p>
+        <div className="mt-4 flex flex-wrap justify-center gap-3">
+          <Link
+            href="/matches"
+            className="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-500"
+          >
+            Ver resultados
+          </Link>
+          <Link
+            href="/grupos"
+            className="rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-300 transition-colors hover:bg-slate-800"
+          >
+            Ver posiciones
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       <div className="relative">
