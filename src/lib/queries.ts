@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { compareStandings, compareLeaderboard } from "@/lib/standings";
 import type { Stage } from "@/generated/prisma/client";
 
 export type TeamStanding = {
@@ -95,13 +96,7 @@ export async function getGroupStandings(): Promise<GroupStandings[]> {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([letter, group]) => ({
       letter,
-      teams: group.sort(
-        (a, b) =>
-          b.points - a.points ||
-          b.goalDiff - a.goalDiff ||
-          b.goalsFor - a.goalsFor ||
-          a.name.localeCompare(b.name)
-      ),
+      teams: group.sort(compareStandings),
     }));
 }
 
@@ -119,13 +114,7 @@ export async function getBestThirds(): Promise<BestThirdRow[]> {
     })
     .filter((t): t is BestThirdRow => t !== null);
 
-  return thirds.sort(
-    (a, b) =>
-      b.points - a.points ||
-      b.goalDiff - a.goalDiff ||
-      b.goalsFor - a.goalsFor ||
-      a.name.localeCompare(b.name)
-  );
+  return thirds.sort(compareStandings);
 }
 
 export type LeaderboardRow = {
@@ -194,11 +183,8 @@ export async function getGroupLeaderboard(
       exactCount: exactByUser.get(m.userId) ?? 0,
       predictionCount: countByUser.get(m.userId) ?? 0,
     }))
-    .sort(
-      (a, b) =>
-        // 1° por puntos totales, 2° por marcadores exactos
-        b.points - a.points || b.exactCount - a.exactCount
-    );
+    // 1° por puntos totales, 2° por marcadores exactos
+    .sort(compareLeaderboard);
 
   return { rows, validFrom };
 }

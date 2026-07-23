@@ -5,6 +5,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { getGroupStandings } from "@/lib/queries";
+import { scoreSchema } from "@/lib/validation";
 import type { FormState } from "@/lib/actions/auth";
 import type { Stage } from "@/generated/prisma/client";
 
@@ -14,8 +15,6 @@ async function requireAdmin() {
     throw new Error("Solo el administrador puede hacer esto");
   }
 }
-
-const scoreSchema = z.coerce.number().int().min(0).max(99);
 
 export async function saveResult(
   matchId: number,
@@ -44,7 +43,8 @@ export async function saveResult(
       where: { id: matchId },
       data: { homeScore, awayScore, status: "FINISHED" },
     }),
-    // 3 puntos por marcador exacto, 1 por acertar el resultado, 0 en otro caso
+    // 3 puntos por marcador exacto, 1 por acertar el resultado, 0 en otro caso.
+    // Debe coincidir con `scorePrediction` en @/lib/match-utils.
     prisma.$executeRaw`
       UPDATE "Prediction"
       SET "points" = CASE

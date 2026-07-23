@@ -4,9 +4,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { scoreSchema } from "@/lib/validation";
 import type { Stage } from "@/generated/prisma/client";
-
-const scoreSchema = z.coerce.number().int().min(0).max(99);
 
 export type PredictionState =
   | { ok: true; error?: never }

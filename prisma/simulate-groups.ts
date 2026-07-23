@@ -18,6 +18,7 @@ function randomScore(): number {
 
 // Recalcula los puntos de las predicciones de los partidos de grupo finalizados:
 // 3 por marcador exacto, 1 por acertar el resultado, 0 en otro caso.
+// Debe coincidir con `scorePrediction` en src/lib/match-utils.ts.
 async function recomputeGroupPredictionPoints() {
   await prisma.$executeRaw`
     UPDATE "Prediction" p

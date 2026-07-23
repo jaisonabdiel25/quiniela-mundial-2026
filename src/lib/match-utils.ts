@@ -27,3 +27,19 @@ export const STAGE_ORDER: Stage[] = [
 export function isLocked(match: { kickoff: Date }): boolean {
   return match.kickoff <= new Date();
 }
+
+// Puntaje de una predicción contra el marcador real:
+// 3 por marcador exacto, 1 por acertar el signo del resultado, 0 en otro caso.
+// Fuente canónica de la fórmula. OJO: esta lógica está duplicada como SQL crudo
+// en `admin.saveResult` y `prisma/simulate-groups.ts` (Prisma no puntúa en JS);
+// si cambias la fórmula, mantén esos tres lugares sincronizados.
+export function scorePrediction(
+  homeScore: number,
+  awayScore: number,
+  predHome: number,
+  predAway: number
+): 0 | 1 | 3 {
+  if (homeScore === predHome && awayScore === predAway) return 3;
+  if (Math.sign(homeScore - awayScore) === Math.sign(predHome - predAway)) return 1;
+  return 0;
+}
