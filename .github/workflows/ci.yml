@@ -1,0 +1,49 @@
+name: CI
+
+# Valida lint, tests y build en cada push a main y en cada Pull Request.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Cancela ejecuciones anteriores de la misma rama/PR si llega un push nuevo.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Lint · Test · Build
+    runs-on: ubuntu-latest
+
+    env:
+      # El build corre `prisma generate` (no necesita BD) y Next puede evaluar
+      # módulos que instancian el pool de Prisma. El pool de `pg` es perezoso:
+      # no abre conexión en build, así que basta con que las variables existan.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      AUTH_SECRET: ci-dummy-secret-not-used-at-build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` dispara el postinstall (`prisma generate`), así que el cliente
+      # generado en src/generated/prisma ya existe para lint, test y build.
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
